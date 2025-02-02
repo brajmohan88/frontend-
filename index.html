@@ -116,67 +116,53 @@ input {
 </style>
 
 <script>
-const backendUrl = "https://free-gift-code-daily-free-earnig.onrender.com";
-
-// Backend se user data fetch karna
-async function getUserData() {
-    const response = await fetch(`${backendUrl}/api/users/1`);
-    const user = await response.json();
-    document.getElementById("userId").innerText = user.userId;
-    document.getElementById("userBalance").innerText = user.balance;
-}
-
-// Gift Code redeem karne ka function
-async function redeemGiftCode() {
+function redeemGiftCode() {
     let code = document.getElementById("giftCodeInput").value;
     let message = document.getElementById("giftCodeMessage");
+    const backendURL = "https://your-backend-project-name.onrender.com"; // Apna Render backend URL
 
-    // Check karte hai ki user ne Telegram channel join kiya hai ya nahi
     if (!isUserInTelegram()) {
-        message.innerHTML = "Aapko gift code claim karne ke liye humare Telegram channel ko join karna hoga!";
+        message.innerHTML = "You must join our Telegram channel to claim the code!";
         return;
     }
 
-    // Backend pe gift code redeem karne ka request bhejna
-    const response = await fetch(`${backendUrl}/api/gift-codes/redeem`, {
+    fetch(`${backendURL}/api/gift-codes/redeem`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ code })
+        body: JSON.stringify({ code: code })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            message.innerHTML = "Gift code applied! ₹5 added to your wallet.";
+        } else {
+            message.innerHTML = "Invalid gift code!";
+        }
+    })
+    .catch(error => {
+        message.innerHTML = "Something went wrong. Please try again.";
     });
-
-    const result = await response.json();
-    if (result.success) {
-        message.innerHTML = result.message;
-        await getUserData(); // Balance update karna redeem ke baad
-    } else {
-        message.innerHTML = result.message;
-    }
 }
 
-// User ka check karna ki usne Telegram join kiya hai ya nahi
 function isUserInTelegram() {
-    return confirm("Kya aapne humare Telegram channel ko join kiya hai?");
+    return confirm("Have you joined our Telegram channel?");
 }
 
-// Chatbot ke sath baat karne ka function
 function chatWithBot() {
     let userQuery = document.getElementById("chatInput").value;
     let response = document.getElementById("chatResponse");
     
     let faq = {
-        "How to claim gift code?": "Humare Telegram channel ko join karein aur gift code section mein code enter karein.",
-        "How to check wallet balance?": "Aapka wallet balance Wallet section mein dikhayi deta hai.",
-        "How to contact support?": "Support ke liye humare Telegram channel ko join karein.",
-        "Hello": "Hi! Aapki madad kaise kar sakte hain?",
-        "Hi": "Hello! Aapko kis cheez ki madad chahiye?",
-        "Help": "Aap gift codes, wallet balance, ya support ke baare mein puch sakte hain."
+        "How to claim gift code?": "Join our Telegram channel and enter the code in the gift code section.",
+        "How to check wallet balance?": "Your wallet balance is shown in the Wallet section.",
+        "How to contact support?": "Join our Telegram channel for support.",
+        "Hello": "Hi there! How can I help you?",
+        "Hi": "Hello! What do you need help with?",
+        "Help": "You can ask about gift codes, wallet balance, or support details."
     };
     
-    response.innerHTML = faq[userQuery] || "Mujhe samajh nahi aaya. Kuch aur puchne ki koshish karein.";
+    response.innerHTML = faq[userQuery] || "Sorry, I don't understand. Try asking something else.";
 }
-
-// Page load hone par user data ko fetch karna
-window.onload = getUserData;
 </script>
